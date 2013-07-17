@@ -1,0 +1,8 @@
+If you wish to see the remote jacoco reporting, add jacocoagent.jar to $TOMCAT_HOME/lib and ensure the tomcat environment has CATALINA_OPTS set:
+
+CATALINA_OPTS="$CATALINA_OPTS -Xmx2048m -Xms2048m -XX:MaxPermSize=512m -javaagent:/usr/local/thirdparty/jakarta-tomcat/lib/jacocoagent.jar=append=false,dumponexit=false,output=tcpserver,address=*,port=6300,excludes=com.example.excludeme.*"
+
+Note: Jacoco dynamically instruments classes with private data. If tomcat fails to 
+start or you encounter other bugs with jacoco reporting, check for code
+that performs unsafe reflection (iterating through all members of a
+class without validating access level) may need to be excluded or rewritten.

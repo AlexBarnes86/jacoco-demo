@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE project>
+<project name="jacoco-demo" basedir="." default="build" xmlns:jacoco="antlib:org.jacoco.ant">
+	<property name="sourceCompatibility" value="1.7"/>
+	<property name="targetCompatibility" value="1.7"/>
+	
+	<property name="target" location="${basedir}/target"/>
+	<property name="target.classes" location="${target}/classes"/>
+	<property name="target.classes.main" location="${target.classes}/main"/>
+	<property name="src.main" location="${basedir}/src/main"/>
+	<property name="src.main.java" location="${src.main}/java"/>
+	<property name="src.main.webapp" location="src/main/webapp"/>
+	<property name="webinf.dir" location="${src.main.webapp}/WEB-INF"/>
+	<property name="metainf.dir" location="${src.main.webapp}/META-INF"/>
+	
+	<property name="war.file.name" value="jacoco-demo.war"/>
+	
+	<property name="jacoco.host" value="rcdn6-vm63-54"/>
+	<property name="jacoco.port" value="6300"/>
+	<property name="jacoco.datafile" value="${coverage.dir}/jacoco.exec"/>
+	
+	<path id="compile.classpath">
+	</path>
+	
+	<path id="providedCompile.classpath">
+		<fileset dir="${basedir}/lib" includes="servlet-api*.jar"/>
+	</path>
+	
+	<target name="build" depends="war"/>
+	
+	<target name="war" depends="compile">
+		<war destfile="${target}/${war.file.name}" webxml="${webinf.dir}/web.xml" compress="false">
+			<metainf dir="${metainf.dir}"/>
+			 <!-- The webinf task is a little dumb, it thinks classes and libs should be in with our source tree and wants to re-include the web.xml, exclude them for better control -->
+			<webinf dir="${webinf.dir}">
+				<exclude name="web.xml"/>
+				<exclude name="classes/**"/>
+				<exclude name="lib/**"/>
+			</webinf>
+			<classes dir="${target.classes.main}"/>
+			<lib dir="${webinf.dir}/lib"/>
+			<fileset dir="${src.main.webapp}">
+				<exclude name="WEB-INF/**"/>
+				<exclude name="META-INF/**"/>
+			</fileset>
+		</war>
+	</target>
+	
+	<target name="compile">
+		<mkdir dir="${target.classes.main}"/>
+		<javac
+			debug="true"
+			srcdir="${src.main.java}"
+			destdir="${target.classes.main}"
+			source="${sourceCompatibility}"
+			target="${targetCompatibility}"
+			includeantruntime="false"
+			fork="true">
+			
+			<classpath refid="compile.classpath"/>
+			<classpath refid="providedCompile.classpath"/>
+		</javac>
+	</target>
+	
+    <taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+		<classpath path="${basedir}/lib/jacocoant.jar"/>
+	</taskdef>
+	
+	<target name="jacocoReport">
+		<delete file="${jacoco.datafile}" />
+		<jacoco:dump address="${jacoco.host}" port="${jacoco.port}" dump="true" reset="true" destfile="${target}/remote.exec" append="false"/>
+		<jacoco:report>
+			<executiondata>
+				<file file="${target}/remote.exec"/>
+			</executiondata>
+			<structure name="Coverage">
+				<classfiles>
+					<fileset dir="${target}/classes"/>
+				</classfiles>
+				<sourcefiles encoding="UTF-8">
+					<fileset dir="src"/>
+				</sourcefiles>
+			</structure>
+			<html destdir="${target}/report"/>
+			<xml destfile="${target}/report/report.xml"/>
+		</jacoco:report>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${target}"/>
+	</target>
+</project>
